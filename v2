@@ -1,0 +1,510 @@
+<!DOCTYPE html> 
+<html lang="en-GB"> 
+<head> 
+    <meta charset="UTF-8"> 
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"> 
+    <title id="page-title">DryOutside.com | Scientific Laundry Forecast</title> 
+    <style> 
+        /* DESIGN & LAYOUT */ 
+        * { box-sizing: border-box; } 
+        #dry-outside-app {  
+            min-height: 100vh; margin: 0; padding: 0;  
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;  
+            background-color: #ffffff; color: #000; transition: background 0.3s ease, color 0.3s ease; 
+            display: flex; flex-direction: column; align-items: center; 
+        } 
+          
+        /* DARK MODE STYLES */
+        #dry-outside-app.dark-mode { background-color: #0d0d15 !important; color: #ffffff !important; } 
+        #dry-outside-app.dark-mode .widget, 
+        #dry-outside-app.dark-mode .fabric-item, 
+        #dry-outside-app.dark-mode .day-pill { background: rgba(255,255,255,0.05); border-color: #333; color: #fff; } 
+        #dry-outside-app.dark-mode #about-overlay { background: #0d0d15; color: #fff; } 
+        #dry-outside-app.dark-mode input { background: #1a1a24; border-color: #333; color: #fff; } 
+        #dry-outside-app.dark-mode #results-list { background: #1a1a24; color: #fff; } 
+        #dry-outside-app.dark-mode .result-item { border-bottom: 1px solid #333; color: #fff; } 
+        #dry-outside-app.dark-mode #home-toast { background: #1a1a24; border-color: #444; color: #aaa; }
+        #dry-outside-app.dark-mode #tip-container { background: rgba(255,255,255,0.05); color: #888; }
+        #dry-outside-app.dark-mode .source-card { background: rgba(255,255,255,0.05); border-color: #444; }
+        #dry-outside-app.dark-mode #maker-footer { border-top-color: rgba(255,255,255,0.1); }
+        #dry-outside-app.dark-mode #us-legal-notice { background: rgba(0, 123, 255, 0.1); border-color: #007bff; color: #fff; }
+
+        .container { width: 100%; max-width: 650px; padding: 60px 20px 40px 20px; text-align: center; flex-grow: 1; } 
+          
+        #mode-toggle, #about-btn { position: absolute; top: 35px; z-index: 100; background: rgba(0,0,0,0.05); border-radius: 20px; padding: 5px 12px; font-size: 0.7rem; font-weight: 800; cursor: pointer; text-transform: uppercase; border: 1px solid rgba(0,0,0,0.1); } 
+        #mode-toggle { right: 20px; } 
+        #about-btn { left: 20px; } 
+         
+        /* ABOUT OVERLAY */
+        #about-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #ffffff; z-index: 2000; display: none; overflow-y: auto; text-align: left; line-height: 1.4; } 
+        .about-inner { max-width: 600px; margin: 0 auto; padding: 50px 20px; } 
+        .close-about { position: absolute; top: 25px; right: 25px; font-size: 2rem; cursor: pointer; font-weight: 900; z-index: 2001; } 
+        .about-content h2 { font-weight: 900; font-size: 1.8rem; margin-bottom: 5px; letter-spacing: -1px; } 
+        .about-content h3 { font-size: 0.85rem; margin-top: 15px; margin-bottom: 4px; font-weight: 800; text-transform: uppercase; color: #007bff; }
+        .about-content p { margin: 0 0 8px 0; font-size: 0.95rem; }
+
+        .about-footer-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 15px; }
+        @media (max-width: 500px) { .about-footer-grid { grid-template-columns: 1fr; } }
+
+        .source-card { background: #f8f9fa; border-radius: 10px; padding: 15px; border-left: 4px solid #007bff; } 
+        .source-card h3 { margin-top: 0; }
+        .source-card p { font-size: 0.85rem !important; margin: 0 !important; line-height: 1.3; }
+
+        .about-cta { display: flex; align-items: center; justify-content: center; padding: 12px; border-radius: 8px; text-decoration: none; font-weight: 800; font-size: 0.85rem; text-align: center; }
+        .btn-coffee { background: #FFDD00; color: #000; }
+        .btn-linkedin { background: #0077b5; color: #fff; }
+        .btn-email { background: #e1e1e1; color: #333; }
+        #dry-outside-app.dark-mode .btn-email { background: #333; color: #fff; }
+
+        .license-box { margin-top: 25px; font-size: 0.75rem; color: #666; line-height: 1.6; border-top: 1px solid #eee; padding-top: 15px; }
+        .license-box a { color: #007bff; text-decoration: none; font-weight: 600; }
+        .license-box img { vertical-align: middle; }
+
+        /* MAIN APP UI */
+        header { position: absolute; top: 40px; width: 100%; left: 0; text-align: center; } 
+        header h1 { font-weight: 900; font-size: 1rem; letter-spacing: 1px; cursor: pointer; margin: 0; } 
+          
+        #weather-icon { font-size: 5rem; margin-bottom: 5px; } 
+        #manifesto { font-size: 1.6rem; font-weight: 900; line-height: 1.1; margin-bottom: 25px; letter-spacing: -1px; } 
+          
+        input { width: 100%; max-width: 450px; padding: 22px; border: 2px solid #eee; border-radius: 60px; font-size: 1.2rem; text-align: center; outline: none; font-weight: 600; box-shadow: 0 10px 30px rgba(0,0,0,0.05); } 
+        #results-list { position: absolute; left: 50%; transform: translateX(-50%); width: 100%; max-width: 450px; background: white; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); display: none; z-index: 1000; margin-top: 10px; } 
+        .result-item { padding: 15px; border-bottom: 1px solid #eee; cursor: pointer; text-align: left; color: #000; } 
+
+        #save-option-container { margin-top: 15px; font-size: 0.8rem; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 8px; opacity: 0.7; }
+        #save-home-checkbox { width: 18px; height: 18px; cursor: pointer; }
+
+        #home-toast { display: none; background: #f0f0f5; color: #666; font-size: 0.75rem; font-weight: 800; padding: 8px 15px; border-radius: 30px; margin-bottom: 20px; border: 1px solid #ddd; align-items: center; gap: 5px; }
+        .toast-action { color: #007bff; text-decoration: underline; cursor: pointer; margin: 0 5px; }
+        .toast-dismiss { color: #999; cursor: pointer; font-size: 1.1rem; margin-left: 8px; line-height: 1; }
+
+        #decision-text { font-size: clamp(3.5rem, 15vw, 7.5rem); font-weight: 900; line-height: 0.8; letter-spacing: -4px; display: none; margin: 10px 0; } 
+        #summary-text { margin: 15px auto; font-weight: 800; font-size: 1.1rem; max-width: 400px; padding: 15px 25px; background: rgba(0,0,0,0.04); border-radius: 12px; display: none; } 
+
+        #extra-data { display: none; width: 100%; margin-top: 10px; } 
+        .widget-row { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-bottom: 15px; } 
+        .widget { background: #f9f9f9; border: 1px solid #eee; border-radius: 15px; padding: 12px; flex: 1; min-width: 140px; font-size: 0.75rem; font-weight: 800; } 
+        .widget span { display: block; font-size: 1.1rem; color: #007bff; margin-top: 4px; } 
+        .fabric-item { flex: 1; max-width: 180px; padding: 12px; border: 1px solid #eee; border-radius: 12px; font-size: 0.65rem; font-weight: 800; background: #fff; } 
+        .fabric-item span { display: block; font-size: 1.2rem; color: #2ecc71; margin-top: 5px; } 
+
+        #weekly-planner { margin: 20px auto 30px auto; text-align: left; max-width: 500px; } 
+        .planner-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin-top: 12px; } 
+        .day-pill { background: #f9f9f9; border: 1px solid #eee; padding: 10px 2px; border-radius: 12px; text-align: center; font-size: 0.6rem; font-weight: 900; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; transition: transform 0.2s; } 
+        .day-pill:hover { transform: translateY(-3px); border-color: #007bff; }
+        .day-pill.active { border: 2px solid #007bff; background: rgba(0,123,255,0.05); }
+        .day-pill .icon { font-size: 1.2rem; margin-bottom: 4px; display: block; } 
+        .status-badge { font-size: 0.5rem; padding: 2px 4px; border-radius: 4px; text-transform: uppercase; margin-top: 4px; color: white; }
+
+        #eco-bar { background: #e8f5e9; color: #2e7d32; padding: 10px 20px; border-radius: 30px; font-size: 0.75rem; font-weight: 800; margin-top: 20px; display: inline-block; } 
+        #indoor-tip { display: none; background: #fff3e0; color: #ef6c00; padding: 15px; border-radius: 12px; font-weight: 800; margin-top: 15px; border-left: 5px solid #ff9800; font-size: 0.85rem; text-align: left;} 
+          
+        /* US LEGAL NOTICE */
+        #us-legal-notice { display: none; background: #eef7ff; border: 1px solid #007bff; border-radius: 12px; padding: 12px; font-size: 0.8rem; font-weight: 700; color: #0056b3; margin-top: 15px; text-align: left; line-height: 1.4; }
+
+        #tip-container { display: none; font-size: 0.75rem; font-weight: 700; color: #666; background: #f9f9f9; padding: 12px 20px; border-radius: 10px; max-width: 500px; margin: 25px auto 10px auto; }
+
+        #reset-btn { display: none; margin: 20px auto 0 auto; color: #007bff; font-weight: 800; cursor: pointer; text-transform: uppercase; font-size: 0.8rem; border: none; background: none; } 
+        #local-name { display: none; margin-top: 20px; font-weight: 800; color: #007bff; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 1px; } 
+        #clear-home-btn { display: none; margin: 10px auto; color: #ff4757; font-size: 0.7rem; font-weight: 800; border: none; background: none; cursor: pointer; text-transform: uppercase; opacity: 0.6; }
+        
+        #maker-footer { margin-top: 40px; padding-top: 20px; border-top: 1px solid rgba(0,0,0,0.05); opacity: 0.6; font-size: 0.7rem; font-weight: 700; }
+    </style> 
+</head> 
+<body> 
+
+<div id="dry-outside-app"> 
+    <div id="about-btn" onclick="openAbout()">About</div> 
+    <div id="mode-toggle" onclick="toggleMode()">Dark Mode</div> 
+
+    <div id="about-overlay"> 
+        <div class="close-about" onclick="closeAbout()">×</div> 
+        <div class="about-inner"> 
+            <div class="about-content"> 
+                <h2>Why DryOutside?</h2> 
+                <p>I’m an independent developer who was tired of guessing if my laundry would actually dry. I built this to give a straight answer based on physics, not just a generic sun icon.</p>
+
+                <h3>The Science</h3>
+                <p><b>1. Vapour Pressure:</b> Measures if the air has "room" to soak up moisture.</p>
+                <p><b>2. Boundary Layers:</b> Wind is needed to strip away the damp air "blanket" around clothes.</p>
+                <p><b>3. UV Radiation:</b> Sunlight provides energy for evaporation and natural disinfection.</p>
+
+                <div class="about-footer-grid">
+                    <div class="source-card">
+                        <h3>Data Source</h3>
+                        <p>Meteorological data is provided by <a href="https://open-meteo.com/" target="_blank" rel="noopener" style="color:#007bff; text-decoration:underline;">Open-Meteo.com</a> under the CC BY 4.0 license.</p>
+                    </div>
+                    <div class="source-card" style="border-left-color: #2ecc71;">
+                        <h3>Privacy</h3>
+                        <p>Your Home Town is saved only on your device. I never sell data or run invasive ads.</p>
+                    </div>
+                </div>
+
+                <div class="about-footer-grid" style="margin-top: 15px;">
+                    <div style="display: flex; flex-direction: column; gap: 8px; grid-column: span 2;">
+                        <a href="https://buymeacoffee.com/adamhale" target="_blank" rel="noopener" class="about-cta btn-coffee">☕ Support the Maker</a> 
+                        <a href="https://www.linkedin.com/in/adamhale2/" target="_blank" rel="noopener" class="about-cta btn-linkedin">💬 Talk to me on LinkedIn</a>
+                        <a href="mailto:dryoutside@icloud.com" class="about-cta btn-email">📧 Email me</a>
+                    </div>
+                </div>
+
+                <div class="license-box">
+                    <a href="https://www.dryoutside.com">Dry Outside</a> © 2026 by <a href="https://www.linkedin.com/in/adamhale2/">Adam Hale</a>. 
+                    Weather data by <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo.com</a>.
+                    Licensed under <a href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" rel="license noopener noreferrer">CC BY-NC-ND 4.0</a>
+                    <img src="https://mirrors.creativecommons.org/presskit/icons/cc.svg" alt="" style="max-width: 1em;max-height:1em;margin-left: .2em;"><img src="https://mirrors.creativecommons.org/presskit/icons/by.svg" alt="" style="max-width: 1em;max-height:1em;margin-left: .2em;"><img src="https://mirrors.creativecommons.org/presskit/icons/nc.svg" alt="" style="max-width: 1em;max-height:1em;margin-left: .2em;"><img src="https://mirrors.creativecommons.org/presskit/icons/nd.svg" alt="" style="max-width: 1em;max-height:1em;margin-left: .2em;">
+                </div>
+            </div> 
+        </div> 
+    </div> 
+
+    <div class="container"> 
+        <header><h1 onclick="resetApp()">DryOutside.com</h1></header> 
+        <div id="weather-icon">🧺</div> 
+        <div id="manifesto">Stop guessing. Get a science-backed answer to "Should I dry my clothes outside today?" based on real-time local data.</div> 
+
+        <div id="search-container" style="position:relative;"> 
+            <input type="text" id="cityInput" placeholder="Type your town..." autocomplete="off"> 
+            <div id="results-list"></div> 
+             
+            <div id="save-option-container">
+                <input type="checkbox" id="save-home-checkbox" checked>
+                <label for="save-home-checkbox">Remember this as my home town</label>
+            </div>
+
+            <div id="gps-btn" onclick="getGPS()" style="margin-top: 15px; color: #007bff; font-weight: 800; cursor: pointer; font-size: 0.8rem;">📍 Near Me</div> 
+        </div> 
+          
+        <div id="home-toast">
+            Showing saved home: <b id="toast-city-name"></b>. 
+            <span class="toast-action" onclick="resetApp()">Change?</span>
+            <span class="toast-dismiss" onclick="dismissToast()" title="Don't show this again">×</span>
+        </div>
+
+        <h2 id="decision-text">YES</h2> 
+        <div id="summary-text"></div> 
+
+        <div id="weekly-planner" style="display:none;"> 
+            <div style="font-size:0.7rem; font-weight:900; text-transform:uppercase; letter-spacing:1px; color:#aaa; margin-left: 4px; margin-bottom: 10px; text-align: center;">7-Day Outlook (Click a day)</div> 
+            <div class="planner-grid" id="planner-grid"></div> 
+        </div> 
+
+        <div id="extra-data"> 
+            <div class="widget-row">
+                <div class="widget">💧 HUMIDITY <span id="live-humidity">-</span></div>
+                <div class="widget">🌬️ WIND <span id="live-wind">-</span></div>
+                <div class="widget"><span id="precip-label">☔ RAIN</span> <span id="live-rain">-</span></div>
+            </div>
+
+            <div class="widget-row"> 
+                <div class="widget">🕒 BEST WINDOW <span id="golden-window">...</span></div> 
+                <div class="widget">☀️ UV STATUS <span id="uv-status">-</span></div> 
+            </div> 
+            <div class="widget-row"> 
+                <div class="fabric-item">👕 THIN TOP <span id="top-time">-</span></div> 
+                <div class="fabric-item">👖 HEAVY JEANS <span id="jean-time">-</span></div> 
+            </div> 
+            <div id="eco-bar">🌱 Choosing outside saves <span id="savings-val">~£1.15</span> & 2kg CO2</div> 
+             
+            <div id="indoor-tip"></div> 
+            <div id="us-legal-notice"></div> 
+             
+            <div id="local-name"></div> 
+            <button id="clear-home-btn" onclick="clearHome()">🗑️ Clear Home Town</button>
+            <button id="reset-btn" onclick="resetApp()">🔄 Change Town</button> 
+
+            <div id="tip-container">💡 Tip: <span id="tip-text">...</span></div>
+
+            <div id="maker-footer">
+                <p>DryOutside is an independent project. <br>
+                <a href="https://buymeacoffee.com/adamhale" target="_blank" rel="noopener" style="color: #007bff; text-decoration: none;">☕ Support the maker</a> 
+                &nbsp; | &nbsp; 
+                <a href="https://www.linkedin.com/in/adamhale2/" target="_blank" rel="noopener" style="color: #007bff; text-decoration: none;">Talk to me on LinkedIn</a></p>
+            </div>
+        </div> 
+    </div> 
+
+    <script> 
+        let globalWeatherData = null;
+        let dayForecasts = [];
+        let currentCountryCode = 'GB'; // Default
+        const homeEmojis = ["🧺", "👕", "🧼", "🧶", "🧦", "👖", "👔"]; 
+         
+        const laundryTips = [
+            "Inside-out: Drying dark clothes inside-out prevents the sun from fading the colours.",
+            "The Lint Logic: Line drying creates no lint, meaning your clothes aren't being slowly worn away.",
+            "Gravity Assist: Hang shirts by the hem, not the shoulders, to avoid 'peg ears'.",
+            "Morning Rush: Hanging early gives you peak UV radiation benefits between 11am and 2pm.",
+            "Winter Hack: Clothes can dry through 'sublimation' in freezing temps if humidity is very low.",
+            "Jeans Secret: Hang jeans by the waistband with the legs open to let air circulate inside.",
+            "The Tug Test: If the seams are still cold to the touch, they aren't dry. Don't lie to yourself.",
+            "Socks Mystery: Hanging socks in pairs won't stop the dryer from eating them, but it makes you feel organized."
+        ];
+
+        window.addEventListener('popstate', (event) => { initApp(); });
+        window.addEventListener('load', () => { initApp(); }); 
+
+        function initApp() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const cityQuery = urlParams.get('city');
+            const savedHome = localStorage.getItem('dryOutsideHome');
+            const toastDismissed = localStorage.getItem('hideHomeToast');
+            document.getElementById('tip-text').innerText = laundryTips[Math.floor(Math.random() * laundryTips.length)];
+
+            if (cityQuery) {
+                fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${cityQuery}&count=1`).then(r => r.json()).then(d => {
+                    if (d.results && d.results[0]) {
+                        const c = d.results[0];
+                        let region = (c.country_code === 'US' && c.admin1) ? c.admin1 : (c.admin2 || c.admin1 || "");
+                        const fullLoc = `${c.name}${region ? ', ' + region : ''}, ${c.country_code}`;
+                        selectLocation(c.latitude, c.longitude, fullLoc, false, c.country_code, true);
+                    }
+                });
+            } 
+            else if (savedHome) {
+                const { lat, lon, name, countryCode } = JSON.parse(savedHome);
+                if (!toastDismissed) {
+                    document.getElementById('toast-city-name').innerText = name.split(',')[0];
+                    document.getElementById('home-toast').style.display = 'inline-flex';
+                }
+                selectLocation(lat, lon, name, false, countryCode, true);
+            } else {
+                showHomeView();
+                document.getElementById('weather-icon').innerText = homeEmojis[Math.floor(Math.random() * homeEmojis.length)]; 
+            }
+        }
+
+        function showHomeView() {
+            document.getElementById('search-container').style.display = 'block'; 
+            document.getElementById('manifesto').style.display = 'block'; 
+            document.querySelectorAll('#decision-text, #summary-text, #extra-data, #reset-btn, #tip-container, #weekly-planner, #local-name').forEach(el => el.style.display = 'none');
+        }
+
+        function toggleMode() { 
+            const app = document.getElementById('dry-outside-app');
+            const btn = document.getElementById('mode-toggle');
+            app.classList.toggle('dark-mode'); 
+            btn.innerText = app.classList.contains('dark-mode') ? "Light Mode" : "Dark Mode";
+        } 
+
+        function resetApp() { 
+            localStorage.removeItem('dryOutsideHome');
+            localStorage.removeItem('hideHomeToast');
+            window.history.pushState({}, '', window.location.pathname);
+            location.reload(); 
+        }
+
+        function clearHome() {
+            localStorage.removeItem('dryOutsideHome');
+            localStorage.removeItem('hideHomeToast');
+            resetApp();
+        }
+
+        function dismissToast() {
+            localStorage.setItem('hideHomeToast', 'true');
+            document.getElementById('home-toast').style.display = 'none';
+        }
+         
+        function openAbout() { document.getElementById('about-overlay').style.display='block'; } 
+        function closeAbout() { document.getElementById('about-overlay').style.display='none'; } 
+
+        const cityInput = document.getElementById('cityInput'); 
+        const resultsList = document.getElementById('results-list'); 
+
+        cityInput.addEventListener('input', () => { 
+            const q = cityInput.value; if (q.length < 2) return; 
+            fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${q}&count=5`).then(r => r.json()).then(d => { 
+                if (d.results) { 
+                    resultsList.innerHTML = d.results.map(c => {
+                        let region = (c.country_code === 'US' && c.admin1) ? c.admin1 : (c.admin2 || c.admin1 || "");
+                        const fullLoc = `${c.name}${region ? ', ' + region : ''}, ${c.country_code}`;
+                        return `<div class="result-item" onclick="handleCitySelection(${c.latitude}, ${c.longitude}, '${fullLoc.replace(/'/g, "\\'")}', '${c.country_code}')"><b>${c.name}</b>${region ? ', ' + region : ''}, ${c.country_code}</div>`;
+                    }).join(''); 
+                    resultsList.style.display = 'block'; 
+                } 
+            }); 
+        }); 
+
+        async function getGPS() { 
+            navigator.geolocation.getCurrentPosition(async (p) => {
+                const lat = p.coords.latitude;
+                const lon = p.coords.longitude;
+                try {
+                    const r = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=en`);
+                    const d = await r.json();
+                    handleCitySelection(lat, lon, d.city || d.locality || "Nearby", d.countryCode);
+                } catch(e) { handleCitySelection(lat, lon, "Nearby", "GB"); }
+            }); 
+        } 
+
+        function handleCitySelection(lat, lon, name, countryCode) {
+            const shouldSave = document.getElementById('save-home-checkbox').checked;
+            selectLocation(lat, lon, name, shouldSave, countryCode);
+        }
+
+        async function selectLocation(lat, lon, name, saveFlag, countryCode = 'GB', fromPopState = false) { 
+            const cityNameOnly = name.split(',')[0].trim();
+            currentCountryCode = countryCode; // Store globally for display updates
+            
+            if (!fromPopState) {
+                const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname + '?city=' + encodeURIComponent(cityNameOnly);
+                window.history.pushState({path: newUrl}, '', newUrl);
+            }
+
+            if (saveFlag) {
+                localStorage.setItem('dryOutsideHome', JSON.stringify({ lat, lon, name, countryCode }));
+            }
+
+            // HANDLE US LEGAL NOTICE
+            const legalNotice = document.getElementById('us-legal-notice');
+            legalNotice.style.display = 'none'; 
+            if (countryCode === 'US') {
+                const rtdStates = ["AZ", "CA", "CO", "FL", "HI", "IL", "IN", "LA", "ME", "MD", "MA", "NV", "NM", "NC", "OR", "TX", "VT", "VA", "WA"];
+                if (rtdStates.some(s => name.includes(s))) {
+                    legalNotice.innerHTML = `🇺🇸 <b>"Right to Dry" Protection:</b> Your state has laws that generally prevent HOAs from banning clotheslines. Dry with confidence!`;
+                    legalNotice.style.display = 'block';
+                } else {
+                    legalNotice.innerHTML = `🇺🇸 <b>Note:</b> If your HOA restricts outdoor drying, these "YES" days are also perfect for drying indoors by a sunny, open window.`;
+                    legalNotice.style.display = 'block';
+                }
+            }
+
+            const isHomeSaved = localStorage.getItem('dryOutsideHome');
+            const localNameEl = document.getElementById('local-name');
+            const clearHomeBtn = document.getElementById('clear-home-btn');
+
+            if (isHomeSaved) {
+                localNameEl.innerHTML = `📍 Home: ${name}`;
+                clearHomeBtn.style.display = 'block';
+            } else {
+                localNameEl.innerText = `📍 Forecast for ${name}`;
+                clearHomeBtn.style.display = 'none';
+            }
+
+            localNameEl.style.display = 'block';
+            document.getElementById('search-container').style.display = 'none'; 
+            document.getElementById('manifesto').style.display = 'none'; 
+            document.querySelectorAll('#decision-text, #summary-text, #extra-data, #reset-btn, #tip-container, #weekly-planner').forEach(el => el.style.display = 'block'); 
+            resultsList.style.display = 'none'; 
+
+            const r = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,wind_speed_10m,precipitation,weather_code,uv_index&hourly=temperature_2m,relative_humidity_2m,precipitation_probability,wind_speed_10m,uv_index&daily=weather_code,sunrise,sunset&timezone=auto&forecast_days=7`); 
+            const d = await r.json(); 
+            globalWeatherData = d;
+            dayForecasts = [];
+            for(let i=0; i<7; i++) { dayForecasts.push(calculateDayDecision(d, i)); }
+            renderPlanner();
+            updateDisplay(0); 
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function calculateDayDecision(d, dayIdx) {
+            const utcOffset = d.utc_offset_seconds || 0;
+            const nowUTC = new Date().getTime();
+            const localTimeAtLocation = new Date(nowUTC + (utcOffset * 1000));
+            const currentHourAtLocation = localTimeAtLocation.getUTCHours();
+             
+            const sunriseH = new Date(d.daily.sunrise[dayIdx]).getHours();
+            const sunsetH = new Date(d.daily.sunset[dayIdx]).getHours();
+             
+            const peakIdx = (dayIdx * 24) + 13; 
+            const temp = d.hourly.temperature_2m[peakIdx];
+            const humidity = d.hourly.relative_humidity_2m[peakIdx];
+            const wind = d.hourly.wind_speed_10m[peakIdx];
+            const rainProb = d.hourly.precipitation_probability[peakIdx];
+            const uv = d.hourly.uv_index[peakIdx];
+            const code = d.daily.weather_code[dayIdx];
+            const factor = ((100 - humidity) / 12) + (temp / 10) + (wind / 12);
+             
+            let decision = "YES", color = "#2ecc71", summary = "Great drying weather!", icon = "☀️";
+            const yesSnark = ["Get 'em out there!", "Perfect. Go wild.", "Your tumble dryer is crying.", "Elite drying conditions.", "The wind is ready for duty."];
+            const noSnark = ["Forget it. Put the kettle on.", "Unless you want a car wash.", "Your clothes will be wetter than the sea.", "Not a chance, pal.", "Indoor rack day it is."];
+            const maybeSnark = ["Risky business.", "Bring the pegs, stay alert.", "It's a battle against the damp.", "Slow and steady (maybe).", "Ehh, it's a 50/50."];
+
+            if (temp <= 0) { 
+                decision = "NO"; summary = "It's freezing. Your pants will become weapons."; color = "#3498db"; icon = "🧊"; 
+            }
+            else if (rainProb > 40 || code > 50) { 
+                decision = "NO"; summary = noSnark[Math.floor(Math.random() * noSnark.length)]; color = "#ff4757"; icon = "🌧️"; 
+            }
+            else if (humidity > 85) { 
+                decision = "NO"; summary = "Air is soup. Nothing is drying today."; color = "#f39c12"; icon = "🌫️"; 
+            }
+            else if (factor <= 4.5) { 
+                decision = "MAYBE"; summary = maybeSnark[Math.floor(Math.random() * maybeSnark.length)]; color = "#f39c12"; icon = "☁️"; 
+            } else {
+                summary = yesSnark[Math.floor(Math.random() * yesSnark.length)];
+            }
+             
+            let validHours = [];
+            let startSearch = (dayIdx === 0) ? Math.max(sunriseH, currentHourAtLocation) : sunriseH;
+            for (let h = startSearch; h <= sunsetH; h++) {
+                let idx = (dayIdx * 24) + h;
+                if (d.hourly.temperature_2m[idx] > 4 && d.hourly.relative_humidity_2m[idx] < 80) {
+                    validHours.push(h);
+                }
+            }
+
+            const daysShort = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+            const futureDate = new Date(localTimeAtLocation);
+            futureDate.setUTCDate(localTimeAtLocation.getUTCDate() + dayIdx);
+            const dayLabel = dayIdx === 0 ? "Today" : daysShort[futureDate.getUTCDay()];
+             
+            let windowStr = "WINDOW CLOSED";
+            if (validHours.length >= 2) {
+                windowStr = `${dayLabel} ${validHours[0]}:00 - ${validHours[validHours.length - 1] + 1}:00`;
+            } else if (dayIdx === 0 && currentHourAtLocation > sunsetH) {
+                windowStr = "DAY FINISHED";
+                if (dayIdx === 0) { decision = "NO"; summary = "Sun has set. Go to bed."; color = "#999"; icon = "🌙"; }
+            } else { windowStr = "SHORT WINDOW"; }
+             
+            return { decision, summary, color, icon, temp, humidity, wind, rainProb, factor, windowStr, uv, dayLabel };
+        }
+
+        function renderPlanner() {
+            const planner = document.getElementById('planner-grid');
+            planner.innerHTML = "";
+            dayForecasts.forEach((df, i) => {
+                planner.innerHTML += `<div class="day-pill ${i===0?'active':''}" onclick="updateDisplay(${i}, this)"><span class="icon">${df.icon}</span><span>${df.dayLabel}</span><span class="status-badge" style="background:${df.color}">${df.decision}</span></div>`;
+            });
+        }
+
+        function updateDisplay(index, el) {
+            if (el) {
+                document.querySelectorAll('.day-pill').forEach(p => p.classList.remove('active'));
+                el.classList.add('active');
+            }
+            const df = dayForecasts[index];
+            document.getElementById('decision-text').innerText = df.decision;
+            document.getElementById('decision-text').style.color = df.color;
+            document.getElementById('summary-text').innerText = df.summary;
+            document.getElementById('weather-icon').innerText = df.icon;
+            document.getElementById('live-humidity').innerText = Math.round(df.humidity) + "%";
+            document.getElementById('live-wind').innerText = Math.round(df.wind) + "km/h";
+            document.getElementById('live-rain').innerText = df.rainProb + "%";
+            document.getElementById('uv-status').innerText = df.uv > 5 ? "HIGH" : "LOW";
+            document.getElementById('golden-window').innerText = df.windowStr;
+             
+            if (df.decision === "NO") {
+                const reason = (df.temp <= 0) ? "ICE" : "WET";
+                document.getElementById('top-time').innerText = `N/A (${reason})`;
+                document.getElementById('jean-time').innerText = `N/A (${reason})`;
+            } else {
+                document.getElementById('top-time').innerText = Math.max(1, (10 / df.factor) * 1.5).toFixed(1) + "h"; 
+                document.getElementById('jean-time').innerText = Math.max(2.5, (10 / df.factor) * 4).toFixed(1) + "h"; 
+            }
+
+            // Update Savings currency and value
+            const savingsVal = document.getElementById('savings-val');
+            if (currentCountryCode === 'US') {
+                savingsVal.innerText = "~$1.45";
+            } else if (currentCountryCode === 'GB') {
+                savingsVal.innerText = "~£1.15";
+            } else {
+                savingsVal.innerText = "~$1.45"; // Default
+            }
+        }
+    </script> 
+</div> 
+</body> 
+</html>
